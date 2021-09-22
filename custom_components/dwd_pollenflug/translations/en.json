@@ -1,0 +1,15 @@
+{
+    "config": {
+      "abort": {
+        "already_configured": "This region is already configured."
+      },
+      "step": {
+        "user": {
+          "data": {
+            "region_name": "Select region"
+          },
+          "title": "DWD Pollenflug"
+        }
+      }
+    }
+  }

@@ -1,0 +1,10 @@
+{
+  "domain": "dwd_pollenflug",
+  "name": "DWD Pollenflug",
+  "config_flow": true,
+  "dependencies": [],
+  "documentation": "https://github.com/mampfes/hacs_dwd_pollenflug",
+  "codeowners": ["@mampfes"],
+  "iot_class": "cloud_polling",
+  "version": "0.0.0"
+}
