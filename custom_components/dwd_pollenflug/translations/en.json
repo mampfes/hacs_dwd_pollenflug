@@ -1,12 +1,19 @@
 {
     "config": {
       "abort": {
-        "already_configured": "This region is already configured."
+        "already_configured": "This region is already configured.",
+        "fetch_failed": "Failed to fetch data from DWD."
       },
       "step": {
-        "user": {
+        "region": {
           "data": {
             "region_name": "Select region"
+          },
+          "title": "DWD Pollenflug"
+        },
+        "subregion": {
+          "data": {
+            "region_name": "Select sub-region"
           },
           "title": "DWD Pollenflug"
         }

@@ -37,7 +37,7 @@ class Region:
         return self._parent_id
 
 
-class PollenPrediction:
+class PollenForecast:
     def __init__(self, region_id, name, date, value):
         self._region_id = region_id
         self._name = name
@@ -136,9 +136,7 @@ class Pollenflug:
                     value = _convert_value(prediction[keyname])
                     if value is not None:
                         date = today + timedelta(days=dayoffset)
-                        pollen_list.append(
-                            PollenPrediction(region_id, name, date, value)
-                        )
+                        pollen_list.append(PollenForecast(region_id, name, date, value))
         return pollen_list
 
     def _extract_regions_list(self, data):
