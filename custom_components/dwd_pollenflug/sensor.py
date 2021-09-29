@@ -2,16 +2,22 @@ import logging
 from datetime import timedelta
 
 from homeassistant.components.sensor import SensorEntity
-from homeassistant.const import ATTR_ATTRIBUTION
+from homeassistant.const import (
+    ATTR_ATTRIBUTION,
+    ATTR_IDENTIFIERS,
+    ATTR_MANUFACTURER,
+    ATTR_MODEL,
+    ATTR_NAME,
+)
 from homeassistant.util.dt import utcnow
 
 from .const import CONF_REGION_ID, DOMAIN
 
 ATTR_STATE_TOMORROW = "state_tomorrow"
 ATTR_STATE_IN_2_DAYS = "state_in_2_days"
-ATTR_DESC_TODAY = "value_today"
-ATTR_DESC_TOMORROW = "value_tomorrow"
-ATTR_DESC_IN_2_DAYS = "value_in_2_days"
+ATTR_DESC_TODAY = "state_today_desc"
+ATTR_DESC_TOMORROW = "state_tomorrow_desc"
+ATTR_DESC_IN_2_DAYS = "state_in_2_days_desc"
 ATTR_LAST_UPDATE = "last_update"
 ATTR_NEXT_UPDATE = "next_update"
 
@@ -46,18 +52,20 @@ class PollenflugSensorEntity(SensorEntity):
     def __init__(self, hass, source, region_id, pollen_name):
         self._source = source
         self._region_id = region_id
-        self._name = f"Pollenflug {pollen_name}"
+        self._pollen_name = pollen_name
         self._attributes = {}
-
-        self._unique_id = f"{DOMAIN}_{pollen_name}_{region_id}"
         self._state = None
         self._update_sensor_listener = None
 
-        self._device_info = {
-            "identifiers": {(DOMAIN, region_id)},
-            "name": "Pollenflug-Gefahrenindex",
-            "manufacturer": source.sender,
-            "model": source.regions_list[region_id].name,
+        # set HA instance attributes directly (don't use property)
+        self._attr_unique_id = f"{DOMAIN}_{pollen_name}_{region_id}"
+        self._attr_name = f"Pollenflug {pollen_name} {region_id}"
+        self._attr_icon = "mdi:flower-pollen"
+        self._attr_device_info = {
+            ATTR_IDENTIFIERS: {(DOMAIN, region_id)},
+            ATTR_NAME: "Pollenflug-Gefahrenindex",
+            ATTR_MANUFACTURER: source.sender,
+            ATTR_MODEL: source.regions_list[region_id].name,
             "entry_type": "service",
         }
 
@@ -71,7 +79,7 @@ class PollenflugSensorEntity(SensorEntity):
         state_in_2_days = None
 
         for pollen in self._source.pollen_list:
-            if pollen.region_id == self._region_id and pollen.name == self._name:
+            if pollen.region_id == self._region_id and pollen.name == self._pollen_name:
                 if pollen.date == today:
                     state_today = pollen.value
                 elif pollen.date == today + timedelta(days=1):
@@ -90,27 +98,15 @@ class PollenflugSensorEntity(SensorEntity):
         self._attributes[ATTR_LAST_UPDATE] = self._source.last_update
         self._attributes[ATTR_NEXT_UPDATE] = self._source.next_update
 
-        self._attributes[ATTR_ATTRIBUTION] = f"Last update: {self._source.last_update}"
-
-    @property
-    def device_info(self):
-        """Return device info which is shared between all entities of a device."""
-        return self._device_info
+        # return last update in local timezone
+        self._attributes[
+            ATTR_ATTRIBUTION
+        ] = f"Last update: {self._source.last_update.astimezone()}"
 
     @property
     def device_state_attributes(self):
         """Return attributes for the entity."""
         return self._attributes
-
-    @property
-    def unique_id(self):
-        """Return unique id for entity."""
-        return self._unique_id
-
-    @property
-    def name(self):
-        """Return entity name."""
-        return self._name
 
     @property
     def available(self):

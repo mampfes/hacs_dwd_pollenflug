@@ -27,7 +27,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     try:
         await hass.async_add_executor_job(shell._fetch)
     except Exception as exc:
-        _LOGGER.error("Fetch data from DWD failed")
+        _LOGGER.error("fetch data from DWD failed")
         raise ConfigEntryNotReady from exc
 
     # add pollen region to shell
@@ -70,7 +70,7 @@ class PollenflugShell:
         if self.is_idle():
             # This is the first entry, therefore start the timer
             self._fetch_callback_listener = async_track_time_interval(
-                self._hass, self._fetch_callback, timedelta(seconds=20)
+                self._hass, self._fetch_callback, timedelta(hours=1)
             )
 
         self._regions[config_entry.data[CONF_REGION_ID]] = config_entry
@@ -96,4 +96,4 @@ class PollenflugShell:
         try:
             self._source.fetch()
         except Exception as error:
-            _LOGGER.error(f"fetch failed : {error}")
+            _LOGGER.error(f"fetch data from DWD failed : {error}")

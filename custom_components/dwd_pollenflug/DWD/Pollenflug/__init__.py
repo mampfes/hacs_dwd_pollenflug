@@ -2,10 +2,10 @@ import logging
 import re
 from datetime import datetime, timedelta
 
+import pytz
 import requests
 
-LOGGER = logging.getLogger(__name__)
-LOGGER.setLevel(logging.DEBUG)
+_LOGGER = logging.getLogger(__name__)
 
 # maps keynames to day offsets
 PREDICTION_LIST = {
@@ -69,6 +69,7 @@ class Pollenflug:
     URL = "https://opendata.dwd.de/climate_environment/health/alerts/s31fg.json"
     DESC = "https://opendata.dwd.de/climate_environment/health/alerts/Beschreibung_pollen_s31fg.pdf"
     _TIME_FORMAT_STR = "%Y-%m-%d %H:%M Uhr"
+    _TIME_ZONE = "Europe/Berlin"
 
     def __init__(self):
         self._last_update = None
@@ -163,11 +164,13 @@ class Pollenflug:
         return regions
 
     def _extract_data(self, data):
-        self._last_update = datetime.strptime(
-            data["last_update"], self._TIME_FORMAT_STR
+        # define timezone for DWD data
+        tz = pytz.timezone(self._TIME_ZONE)
+        self._last_update = tz.localize(
+            datetime.strptime(data["last_update"], self._TIME_FORMAT_STR)
         )
-        self._next_update = datetime.strptime(
-            data["next_update"], self._TIME_FORMAT_STR
+        self._next_update = tz.localize(
+            datetime.strptime(data["next_update"], self._TIME_FORMAT_STR)
         )
         self._name = data["name"]
         self._sender = data["sender"]
