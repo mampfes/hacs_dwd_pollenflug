@@ -2,19 +2,14 @@ import logging
 from datetime import timedelta
 
 from homeassistant.components.sensor import SensorEntity
-from homeassistant.const import (
-    ATTR_ATTRIBUTION,
-    ATTR_IDENTIFIERS,
-    ATTR_MANUFACTURER,
-    ATTR_MODEL,
-    ATTR_NAME,
-)
+from homeassistant.const import (ATTR_IDENTIFIERS, ATTR_MANUFACTURER,
+                                 ATTR_MODEL, ATTR_NAME)
 from homeassistant.util.dt import utcnow
 
 from .const import CONF_REGION_ID, DOMAIN
 
-ATTR_STATE_TOMORROW = "state_tomorrow"
-ATTR_STATE_IN_2_DAYS = "state_in_2_days"
+ATTR_VAL_TOMORROW = "state_tomorrow"
+ATTR_VAL_IN_2_DAYS = "state_in_2_days"
 ATTR_DESC_TODAY = "state_today_desc"
 ATTR_DESC_TOMORROW = "state_tomorrow_desc"
 ATTR_DESC_IN_2_DAYS = "state_in_2_days_desc"
@@ -53,8 +48,7 @@ class PollenflugSensorEntity(SensorEntity):
         self._source = source
         self._region_id = region_id
         self._pollen_name = pollen_name
-        self._attributes = {}
-        self._state = None
+        self._value = None
         self._update_sensor_listener = None
 
         # set HA instance attributes directly (don't use property)
@@ -73,47 +67,41 @@ class PollenflugSensorEntity(SensorEntity):
         """Update the value of the entity."""
         today = utcnow().date()
 
-        # reset state and attributes
-        state_today = None
-        state_tomorrow = None
-        state_in_2_days = None
+        # reset value and extra_state_attributes
+        val_today = None
+        val_tomorrow = None
+        val_in_2_days = None
 
         for pollen in self._source.pollen_list:
             if pollen.region_id == self._region_id and pollen.name == self._pollen_name:
                 if pollen.date == today:
-                    state_today = pollen.value
+                    val_today = pollen.value
                 elif pollen.date == today + timedelta(days=1):
-                    state_tomorrow = pollen.value
+                    val_tomorrow = pollen.value
                 elif pollen.date == today + timedelta(days=2):
-                    state_in_2_days = pollen.value
+                    val_in_2_days = pollen.value
 
-        self._state = state_today
-        self._attributes[ATTR_STATE_TOMORROW] = state_tomorrow
-        self._attributes[ATTR_STATE_IN_2_DAYS] = state_in_2_days
-
-        self._attributes[ATTR_DESC_TODAY] = self._source.legend.get(state_today)
-        self._attributes[ATTR_DESC_TOMORROW] = self._source.legend.get(state_tomorrow)
-        self._attributes[ATTR_DESC_IN_2_DAYS] = self._source.legend.get(state_in_2_days)
-
-        self._attributes[ATTR_LAST_UPDATE] = self._source.last_update
-        self._attributes[ATTR_NEXT_UPDATE] = self._source.next_update
+        self._value = val_today
+        attributes = {
+            ATTR_VAL_TOMORROW: val_tomorrow,
+            ATTR_VAL_IN_2_DAYS: val_in_2_days,
+            ATTR_DESC_TODAY: self._source.legend.get(val_today),
+            ATTR_DESC_TOMORROW: self._source.legend.get(val_tomorrow),
+            ATTR_DESC_IN_2_DAYS: self._source.legend.get(val_in_2_days),
+            ATTR_LAST_UPDATE: self._source.last_update,
+            ATTR_NEXT_UPDATE: self._source.next_update,
+        }
+        self._attr_extra_state_attributes = attributes
 
         # return last update in local timezone
-        self._attributes[
-            ATTR_ATTRIBUTION
-        ] = f"Last update: {self._source.last_update.astimezone()}"
-
-    @property
-    def device_state_attributes(self):
-        """Return attributes for the entity."""
-        return self._attributes
+        self._attr_attribution = f"Last update: {self._source.last_update.astimezone()}"
 
     @property
     def available(self):
         """Return true if value is valid."""
-        return self._state is not None
+        return self._value is not None
 
     @property
-    def state(self):
-        """Return the state of the entity."""
-        return self._state
+    def native_value(self):
+        """Return the value of the entity."""
+        return self._value
