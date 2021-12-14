@@ -4,6 +4,7 @@ from datetime import timedelta
 from homeassistant.components.sensor import SensorEntity
 from homeassistant.const import (ATTR_IDENTIFIERS, ATTR_MANUFACTURER,
                                  ATTR_MODEL, ATTR_NAME)
+from homeassistant.helpers.device_registry import DeviceEntryType
 from homeassistant.util.dt import utcnow
 
 from .const import CONF_REGION_ID, DOMAIN
@@ -60,7 +61,7 @@ class PollenflugSensorEntity(SensorEntity):
             ATTR_NAME: "Pollenflug-Gefahrenindex",
             ATTR_MANUFACTURER: source.sender,
             ATTR_MODEL: source.regions_list[region_id].name,
-            "entry_type": "service",
+            "entry_type": DeviceEntryType.SERVICE,
         }
 
     async def async_update(self):
