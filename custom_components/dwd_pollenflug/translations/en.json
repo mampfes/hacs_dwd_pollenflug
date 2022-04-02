@@ -8,14 +8,12 @@
         "region": {
           "data": {
             "region_name": "Select region"
-          },
-          "title": "DWD Pollenflug"
+          }
         },
         "subregion": {
           "data": {
             "region_name": "Select sub-region"
-          },
-          "title": "DWD Pollenflug"
+          }
         }
       }
     }
