@@ -2,9 +2,10 @@
 
 This component adds pollen forecasts from [Deutscher Wetterdienst (DWD)](https://www.dwd.de/DE/leistungen/gefahrenindizespollen/gefahrenindexpollen.html) to Home Assistant.
 
-The DWD provides forecasts for 27 regions in Germany. The data will be updated daily (currently at 11am) and the forecasts include the data for today and tomorrow (and the day after tomorrow on Friday).
+The DWD provides forecasts for [27 regions](https://www.dwd.de/DE/leistungen/gefahrenindizespollen/Gebiete.html;jsessionid=6EFEC19F16B0D0204A19D135D464295E.live11041?nn=16102&lsbId=463856) in Germany. The data will be updated daily (currently at 11am) and the forecasts include the data for today and tomorrow (and the day after tomorrow on Friday).
 
 A forecast is provided for the following grass and tree pollen:
+
 - Alder (Erle)
 - Ambrosia (Ambrosia)
 - Ash (Esche)
@@ -14,7 +15,7 @@ A forecast is provided for the following grass and tree pollen:
 - Mugwort (Beifuss)
 - Rye (Roggen)
 
-This component fetches data every hour from DWD (although the data is only updated only once per day).
+This component fetches data every hour from DWD (although the data is updated only once per day).
 
 If you like this component, please give it a star on [github](https://github.com/mampfes/hacs_dwd_pollenflug).
 
