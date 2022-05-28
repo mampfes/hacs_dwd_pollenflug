@@ -2,7 +2,7 @@
   "domain": "dwd_pollenflug",
   "name": "DWD Pollenflug",
   "config_flow": true,
-  "dependencies": [],
+  "dependencies": ["pytz"],
   "documentation": "https://github.com/mampfes/hacs_dwd_pollenflug",
   "issue_tracker": "https://github.com/mampfes/hacs_dwd_pollenflug/issues",
   "codeowners": ["@mampfes"],

@@ -1,7 +1,4 @@
 {
   "name": "DWD Pollenflug",
-  "domains": ["sensor"],
-  "iot_class": "cloud_polling",
-  "render_readme": true,
-  "requirements": ["pytz"]
+  "render_readme": true
 }
