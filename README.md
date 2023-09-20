@@ -54,7 +54,6 @@ Index | Description (in German)
 2.5   | mittlere bis hohe Belastung
 3     | hohe Belastung
 
-
 ### Sensor Attributes
 
 Each sensor provides the following attributes (not including default attributes):
@@ -68,3 +67,244 @@ state_tomorrow_desc | geringe Belastung         | Human readable description of 
 state_in_2_days_desc| geringe Belastung         | Human readable description of the forecast for the day after tomorrow [in German].
 last_update         | 2021-09-28T11:00:00+02:00 | Timestamp representing the last update of the data by DWD.
 next_update         | 2021-09-29T11:00:00+02:00 | Timestamp representing the next update of the data by DWD.
+
+## Examples
+
+A minimalistic example in combination with [Lovelace-Mushroom-Cards](https://github.com/piitaya/lovelace-mushroom) can look like this:
+
+![](images/dwd-pollenflug-minimalistic.png)
+
+To configure:
+
+* Edit your dashboard
+* Add a new Mushroom-Template-Card and copy/paste:
+
+```yaml
+square: true
+type: grid
+columns: 4
+cards:
+  - type: custom:mushroom-template-card
+    entity: sensor.pollenflug_graeser_124
+    primary: Gras
+    icon: mdi:grass
+    layout: vertical
+    icon_color: |-
+      {% if states(config.entity) | int <= 1 %}
+        green
+      {% elif states(config.entity) | int <= 2 %}
+        orange
+      {% elif states(config.entity) | int <= 3 %}
+        red
+      {% endif %}
+    tap_action:
+      action: more-info
+    hold_action:
+      action: none
+    double_tap_action:
+      action: none
+    multiline_secondary: true
+  - type: custom:mushroom-template-card
+    entity: sensor.pollenflug_ambrosia_124
+    primary: Ambrosia
+    icon: mdi:flower-pollen
+    layout: vertical
+    icon_color: |-
+      {% if states(config.entity) | int <= 1 %}
+        green
+      {% elif states(config.entity) | int <= 2 %}
+        orange
+      {% elif states(config.entity) | int <= 3 %}
+        red
+      {% endif %}
+    tap_action:
+      action: more-info
+    hold_action:
+      action: none
+    double_tap_action:
+      action: none
+    multiline_secondary: true
+  - type: custom:mushroom-template-card
+    entity: sensor.pollenflug_beifuss_124
+    primary: Beifuss
+    icon: mdi:flower-pollen
+    layout: vertical
+    icon_color: |-
+      {% if states(config.entity) | int <= 1 %}
+        green
+      {% elif states(config.entity) | int <= 2 %}
+        orange
+      {% elif states(config.entity) | int <= 3 %}
+        red
+      {% endif %}
+    tap_action:
+      action: more-info
+    hold_action:
+      action: none
+    double_tap_action:
+      action: none
+    multiline_secondary: true
+  - type: custom:mushroom-template-card
+    entity: sensor.pollenflug_birke_124
+    primary: Birke
+    icon: mdi:flower-pollen
+    layout: vertical
+    icon_color: |-
+      {% if states(config.entity) | int <= 1 %}
+        green
+      {% elif states(config.entity) | int <= 2 %}
+        orange
+      {% elif states(config.entity) | int <= 3 %}
+        red
+      {% endif %}
+    tap_action:
+      action: more-info
+    hold_action:
+      action: none
+    double_tap_action:
+      action: none
+    multiline_secondary: true
+  - type: custom:mushroom-template-card
+    entity: sensor.pollenflug_erle_124
+    primary: Erle
+    icon: mdi:flower-pollen
+    layout: vertical
+    icon_color: |-
+      {% if states(config.entity) | int <= 1 %}
+        green
+      {% elif states(config.entity) | int <= 2 %}
+        orange
+      {% elif states(config.entity) | int <= 3 %}
+        red
+      {% endif %}
+    tap_action:
+      action: more-info
+    hold_action:
+      action: none
+    double_tap_action:
+      action: none
+    multiline_secondary: true
+  - type: custom:mushroom-template-card
+    entity: sensor.pollenflug_hasel_124
+    primary: Hasel
+    icon: mdi:flower-pollen
+    layout: vertical
+    icon_color: |-
+      {% if states(config.entity) | int <= 1 %}
+        green
+      {% elif states(config.entity) | int <= 2 %}
+        orange
+      {% elif states(config.entity) | int <= 3 %}
+        red
+      {% endif %}
+    tap_action:
+      action: more-info
+    hold_action:
+      action: none
+    double_tap_action:
+      action: none
+    multiline_secondary: true
+  - type: custom:mushroom-template-card
+    entity: sensor.pollenflug_esche_124
+    primary: Esche
+    icon: mdi:flower-pollen
+    layout: vertical
+    icon_color: |-
+      {% if states(config.entity) | int <= 1 %}
+        green
+      {% elif states(config.entity) | int <= 2 %}
+        orange
+      {% elif states(config.entity) | int <= 3 %}
+        red
+      {% endif %}
+    tap_action:
+      action: more-info
+    hold_action:
+      action: none
+    double_tap_action:
+      action: none
+    multiline_secondary: true
+  - type: custom:mushroom-template-card
+    entity: sensor.pollenflug_roggen_124
+    primary: Roggen
+    icon: mdi:flower-pollen
+    layout: vertical
+    icon_color: |-
+      {% if states(config.entity) | int <= 1 %}
+        green
+      {% elif states(config.entity) | int <= 2 %}
+        orange
+      {% elif states(config.entity) | int <= 3 %}
+        red
+      {% endif %}
+    tap_action:
+      action: more-info
+    hold_action:
+      action: none
+    double_tap_action:
+      action: none
+    multiline_secondary: true
+
+```
+
+You can also add the description / forecast:
+
+![Alt text](images/dwd-pollenflug-desc.png)
+
+
+Code:
+
+```yaml
+square: true
+type: grid
+columns: 2
+cards:
+  - type: custom:mushroom-template-card
+    entity: sensor.pollenflug_graeser_124
+    primary: Gras
+    secondary: >-
+      Today: {{ state_attr('sensor.pollenflug_graeser_124', 'state_today_desc') }}
+
+      Tomorrow: {{ state_attr('sensor.pollenflug_graeser_124', 'state_tomorrow_desc') }}
+    icon: mdi:grass
+    layout: vertical
+    icon_color: |-
+      {% if states(config.entity) | int <= 1 %}
+        green
+      {% elif states(config.entity) | int <= 2 %}
+        orange
+      {% elif states(config.entity) | int <= 3 %}
+        red
+      {% endif %}
+    tap_action:
+      action: more-info
+    hold_action:
+      action: none
+    double_tap_action:
+      action: none
+    multiline_secondary: true
+  - type: custom:mushroom-template-card
+    entity: sensor.pollenflug_erle_124
+    primary: Erle
+    secondary: >-
+      Today: {{ state_attr('sensor.pollenflug_erle_124', 'state_today_desc') }}
+
+      Tomorrow: {{ state_attr('sensor.pollenflug_erle_124', 'state_tomorrow_desc') }}
+    icon: mdi:flower-pollen
+    layout: vertical
+    icon_color: |-
+      {% if states(config.entity) | int <= 1 %}
+        green
+      {% elif states(config.entity) | int <= 2 %}
+        orange
+      {% elif states(config.entity) | int <= 3 %}
+        red
+      {% endif %}
+    tap_action:
+      action: more-info
+    hold_action:
+      action: none
+    double_tap_action:
+      action: none
+    multiline_secondary: true
+```
