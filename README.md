@@ -308,3 +308,49 @@ cards:
       action: none
     multiline_secondary: true
 ```
+
+Use of auto-entities:
+
+![Alt text](images/dwd-pollenflug-desc-autoentities.png)
+
+
+Code:
+
+```yaml
+type: custom:auto-entities
+card:
+  type: grid
+  columns: 2
+  square: false
+card_param: cards
+filter:
+  include:
+    - name: Pollenflug*
+      state: '>0'
+      options:
+        type: custom:mushroom-template-card
+        primary: '{{state_attr(''this.entity_id'', ''friendly_name'')}}'
+        secondary: morgen {{state_attr('this.entity_id', 'state_tomorrow_desc')}}
+        icon: '{{state_attr(''this.entity_id'', ''icon'')}}'
+        layout: horizontal
+        icon_color: |-
+          {% if states(config.entity) | float <= 1 %}
+            green
+          {% elif states(config.entity) | float <= 2 %}
+            orange
+          {% else %}
+            red
+          {% endif %}
+        tap_action:
+          action: more-info
+        hold_action:
+          action: none
+        double_tap_action:
+          action: none
+        multiline_secondary: true
+  exclude: []
+sort:
+  method: state
+  reverse: true
+show_empty: false
+
