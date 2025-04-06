@@ -1,7 +1,7 @@
 import logging
 from datetime import timedelta
 
-from homeassistant.components.sensor import SensorEntity
+from homeassistant.components.sensor import SensorEntity, SensorStateClass
 from homeassistant.const import (ATTR_IDENTIFIERS, ATTR_MANUFACTURER,
                                  ATTR_MODEL, ATTR_NAME)
 from homeassistant.helpers.device_registry import DeviceEntryType
@@ -63,6 +63,7 @@ class PollenflugSensorEntity(SensorEntity):
             ATTR_MODEL: source.regions_list[region_id].name,
             "entry_type": DeviceEntryType.SERVICE,
         }
+        self._attr_state_class = SensorStateClass.MEASUREMENT
 
     async def async_update(self):
         """Update the value of the entity."""
