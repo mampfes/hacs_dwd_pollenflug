@@ -164,23 +164,31 @@ class Pollenflug:
         return regions
 
     def _extract_data(self, data):
-        # define timezone for DWD data
+        # parse everything before assigning anything, so that a malformed
+        # response leaves the previous data intact instead of mixing old and
+        # new values
         tz = pytz.timezone(self._TIME_ZONE)
-        self._last_update = tz.localize(
+        last_update = tz.localize(
             datetime.strptime(data["last_update"], self._TIME_FORMAT_STR)
         )
-        self._next_update = tz.localize(
+        next_update = tz.localize(
             datetime.strptime(data["next_update"], self._TIME_FORMAT_STR)
         )
-        self._name = data["name"]
-        self._sender = data["sender"]
+        name = data["name"]
+        sender = data["sender"]
+        legend = self._extract_legend(data["legend"])
+        regions_list = self._extract_regions_list(data["content"])
+        regions_with_data = self._extract_regions_with_data(data["content"])
+        pollen_list = self._extract_pollen_list(data["content"], last_update.date())
 
-        self._legend = self._extract_legend(data["legend"])
-        self._regions_list = self._extract_regions_list(data["content"])
-        self._regions_with_data = self._extract_regions_with_data(data["content"])
-        self._pollen_list = self._extract_pollen_list(
-            data["content"], self._last_update.date()
-        )
+        self._last_update = last_update
+        self._next_update = next_update
+        self._name = name
+        self._sender = sender
+        self._legend = legend
+        self._regions_list = regions_list
+        self._regions_with_data = regions_with_data
+        self._pollen_list = pollen_list
 
     def fetch(self):
         data = self._fetch_data(self.URL)
