@@ -1,8 +1,8 @@
 import logging
 import re
 from datetime import datetime, timedelta
+from zoneinfo import ZoneInfo
 
-import pytz
 import requests
 
 _LOGGER = logging.getLogger(__name__)
@@ -69,7 +69,8 @@ class Pollenflug:
     URL = "https://opendata.dwd.de/climate_environment/health/alerts/s31fg.json"
     DESC = "https://opendata.dwd.de/climate_environment/health/alerts/Beschreibung_pollen_s31fg.pdf"
     _TIME_FORMAT_STR = "%Y-%m-%d %H:%M Uhr"
-    _TIME_ZONE = "Europe/Berlin"
+    # loaded at import time, which Home Assistant does outside the event loop
+    _TIME_ZONE = ZoneInfo("Europe/Berlin")
     _TIMEOUT = 30  # seconds
 
     def __init__(self):
@@ -168,13 +169,12 @@ class Pollenflug:
         # parse everything before assigning anything, so that a malformed
         # response leaves the previous data intact instead of mixing old and
         # new values
-        tz = pytz.timezone(self._TIME_ZONE)
-        last_update = tz.localize(
-            datetime.strptime(data["last_update"], self._TIME_FORMAT_STR)
-        )
-        next_update = tz.localize(
-            datetime.strptime(data["next_update"], self._TIME_FORMAT_STR)
-        )
+        last_update = datetime.strptime(
+            data["last_update"], self._TIME_FORMAT_STR
+        ).replace(tzinfo=self._TIME_ZONE)
+        next_update = datetime.strptime(
+            data["next_update"], self._TIME_FORMAT_STR
+        ).replace(tzinfo=self._TIME_ZONE)
         name = data["name"]
         sender = data["sender"]
         legend = self._extract_legend(data["legend"])
