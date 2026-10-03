@@ -24,11 +24,12 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     shell = hass.data.setdefault(DOMAIN, PollenflugShell(hass))
 
     # get first data for setup_platforms
+    # call source.fetch directly: shell._fetch swallows exceptions, which
+    # would prevent ConfigEntryNotReady from ever being raised
     try:
-        await hass.async_add_executor_job(shell._fetch)
+        await hass.async_add_executor_job(shell.source.fetch)
     except Exception as exc:
-        _LOGGER.error("fetch data from DWD failed")
-        raise ConfigEntryNotReady from exc
+        raise ConfigEntryNotReady(f"fetch data from DWD failed: {exc}") from exc
 
     # add pollen region to shell
     shell.add_entry(entry)
