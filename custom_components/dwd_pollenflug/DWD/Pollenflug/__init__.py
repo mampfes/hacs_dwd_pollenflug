@@ -70,6 +70,7 @@ class Pollenflug:
     DESC = "https://opendata.dwd.de/climate_environment/health/alerts/Beschreibung_pollen_s31fg.pdf"
     _TIME_FORMAT_STR = "%Y-%m-%d %H:%M Uhr"
     _TIME_ZONE = "Europe/Berlin"
+    _TIMEOUT = 30  # seconds
 
     def __init__(self):
         self._last_update = None
@@ -114,7 +115,7 @@ class Pollenflug:
         return self._pollen_list
 
     def _fetch_data(self, url):
-        r = requests.get(url)
+        r = requests.get(url, timeout=self._TIMEOUT)
         r.raise_for_status()
         return r.json()
 
