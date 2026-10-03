@@ -7,6 +7,7 @@ from typing import Dict
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.exceptions import ConfigEntryNotReady
+from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.event import async_track_time_interval
 
 from .const import CONF_REGION_ID, DOMAIN
@@ -27,7 +28,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     # call source.fetch directly: shell._fetch swallows exceptions, which
     # would prevent ConfigEntryNotReady from ever being raised
     try:
-        await hass.async_add_executor_job(shell.source.fetch)
+        await shell.source.fetch(async_get_clientsession(hass))
     except Exception as exc:
         raise ConfigEntryNotReady(f"fetch data from DWD failed: {exc}") from exc
 
@@ -91,10 +92,10 @@ class PollenflugShell:
 
     @callback
     def _fetch_callback(self, *_):
-        self._hass.add_job(self._fetch)
+        self._hass.async_create_task(self._fetch())
 
-    def _fetch(self, *_):
+    async def _fetch(self):
         try:
-            self._source.fetch()
+            await self._source.fetch(async_get_clientsession(self._hass))
         except Exception as error:
             _LOGGER.error(f"fetch data from DWD failed : {error}")

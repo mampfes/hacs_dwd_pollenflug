@@ -3,7 +3,7 @@ import re
 from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 
-import requests
+import aiohttp
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -71,7 +71,7 @@ class Pollenflug:
     _TIME_FORMAT_STR = "%Y-%m-%d %H:%M Uhr"
     # loaded at import time, which Home Assistant does outside the event loop
     _TIME_ZONE = ZoneInfo("Europe/Berlin")
-    _TIMEOUT = 30  # seconds
+    _TIMEOUT = aiohttp.ClientTimeout(total=30)
 
     def __init__(self):
         self._last_update = None
@@ -115,10 +115,10 @@ class Pollenflug:
     def pollen_list(self):
         return self._pollen_list
 
-    def _fetch_data(self, url):
-        r = requests.get(url, timeout=self._TIMEOUT)
-        r.raise_for_status()
-        return r.json()
+    async def _fetch_data(self, session, url):
+        async with session.get(url, timeout=self._TIMEOUT) as r:
+            r.raise_for_status()
+            return await r.json()
 
     def _extract_legend(self, data):
         legend = {}
@@ -191,8 +191,8 @@ class Pollenflug:
         self._regions_with_data = regions_with_data
         self._pollen_list = pollen_list
 
-    def fetch(self):
-        data = self._fetch_data(self.URL)
+    async def fetch(self, session: aiohttp.ClientSession):
+        data = await self._fetch_data(session, self.URL)
         self._extract_data(data)
 
 
