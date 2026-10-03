@@ -1,6 +1,7 @@
 """Test forecast dates using parsed DWD data without network access."""
 
 import unittest
+from types import SimpleNamespace
 from datetime import datetime, timedelta
 from unittest.mock import patch
 
@@ -58,18 +59,23 @@ def make_source(last_update, values=("0", "1-2", "3")):
     return source
 
 
+def make_sensor(source):
+    """Create the real sensor backed by a coordinator stub holding the source."""
+    return PollenflugSensorEntity(SimpleNamespace(data=source), 11, "Birke")
+
+
 class SensorForecastDateTest(unittest.IsolatedAsyncioTestCase):
     """Keep current and future values on the provider's calendar dates."""
 
     async def check_update(self, source, instant, expected, sensor=None):
         """Update the real sensor and check all forecast attributes."""
         if sensor is None:
-            sensor = PollenflugSensorEntity(None, source, 11, "Birke")
+            sensor = make_sensor(source)
         with patch(
             "custom_components.dwd_pollenflug.sensor.utcnow",
             return_value=datetime.fromisoformat(instant),
         ):
-            await sensor.async_update()
+            sensor._update_from_source()
 
         today, tomorrow, in_two_days = expected
         descriptions = {0: "none", 1.5: "low to moderate", 3: "high"}
@@ -180,7 +186,7 @@ class SensorForecastDateTest(unittest.IsolatedAsyncioTestCase):
     async def test_repeated_updates_clear_expired_forecasts(self):
         """Advance one sensor through the forecast horizon without fetching again."""
         source = make_source("2026-07-01 11:00 Uhr")
-        sensor = PollenflugSensorEntity(None, source, 11, "Birke")
+        sensor = make_sensor(source)
         for instant, expected in (
             ("2026-07-01T21:59:59+00:00", (0, 1.5, 3)),
             ("2026-07-01T22:00:00+00:00", (1.5, 3, None)),

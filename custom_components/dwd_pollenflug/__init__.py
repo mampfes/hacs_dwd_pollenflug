@@ -1,39 +1,33 @@
-"""Component for wiffi support."""
-import logging
-from builtins import property
-from datetime import timedelta
-from typing import Dict
-
+"""Component for DWD Pollenflug support."""
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.core import HomeAssistant, callback
+from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryNotReady
-from homeassistant.helpers.aiohttp_client import async_get_clientsession
-from homeassistant.helpers.event import async_track_time_interval
 
-from .const import CONF_REGION_ID, DOMAIN
-from .DWD import Pollenflug
-
-_LOGGER = logging.getLogger(__name__)
-
+from .const import DOMAIN
+from .coordinator import PollenflugCoordinator
 
 PLATFORMS = ["sensor"]
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up component from a config entry, config_entry contains data from config entry database."""
-    # store shell object
-    shell = hass.data.setdefault(DOMAIN, PollenflugShell(hass))
+    # all entries share one coordinator, as DWD provides all regions at once
+    coordinator: PollenflugCoordinator | None = hass.data.get(DOMAIN)
+    if coordinator is None:
+        coordinator = hass.data[DOMAIN] = PollenflugCoordinator(hass)
 
     # get first data for setup_platforms
-    # call source.fetch directly: shell._fetch swallows exceptions, which
-    # would prevent ConfigEntryNotReady from ever being raised
-    try:
-        await shell.source.fetch(async_get_clientsession(hass))
-    except Exception as exc:
-        raise ConfigEntryNotReady(f"fetch data from DWD failed: {exc}") from exc
+    if coordinator.data is None:
+        await coordinator.async_refresh()
+        if not coordinator.last_update_success:
+            if not coordinator.entry_ids:
+                await coordinator.async_shutdown()
+                del hass.data[DOMAIN]
+            raise ConfigEntryNotReady(
+                str(coordinator.last_exception)
+            ) from coordinator.last_exception
 
-    # add pollen region to shell
-    shell.add_entry(entry)
+    coordinator.entry_ids.add(entry.entry_id)
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
@@ -44,58 +38,11 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry):
     """Unload a config entry."""
     unload_ok = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
     if unload_ok:
-        shell = hass.data[DOMAIN]
-        shell.remove_entry(entry)
-        if shell.is_idle():
-            # also remove shell if not used by any entry any more
+        coordinator: PollenflugCoordinator = hass.data[DOMAIN]
+        coordinator.entry_ids.discard(entry.entry_id)
+        if not coordinator.entry_ids:
+            # also remove coordinator if not used by any entry any more
+            await coordinator.async_shutdown()
             del hass.data[DOMAIN]
 
     return unload_ok
-
-
-class PollenflugShell:
-    """Shell object for DWD Pollenflug. Stored in hass.data."""
-
-    def __init__(self, hass: HomeAssistant):
-        """Initialize the instance."""
-        self._hass = hass
-        self._source = Pollenflug.Pollenflug()
-        self._regions: Dict[int, Pollenflug.Region] = {}
-        self._fetch_callback_listener = None
-
-    @property
-    def source(self):
-        return self._source
-
-    def add_entry(self, config_entry: ConfigEntry):
-        """Add entry."""
-        if self.is_idle():
-            # This is the first entry, therefore start the timer
-            self._fetch_callback_listener = async_track_time_interval(
-                self._hass, self._fetch_callback, timedelta(hours=1)
-            )
-
-        self._regions[config_entry.data[CONF_REGION_ID]] = config_entry
-
-    def remove_entry(self, config_entry: ConfigEntry):
-        """Remove entry."""
-        self._regions.pop(config_entry.data[CONF_REGION_ID])
-
-        if self.is_idle():
-            # This was the last region, therefore stop the timer
-            remove_listener = self._fetch_callback_listener
-            if remove_listener is not None:
-                remove_listener()
-
-    def is_idle(self) -> bool:
-        return not bool(self._regions)
-
-    @callback
-    def _fetch_callback(self, *_):
-        self._hass.async_create_task(self._fetch())
-
-    async def _fetch(self):
-        try:
-            await self._source.fetch(async_get_clientsession(self._hass))
-        except Exception as error:
-            _LOGGER.error(f"fetch data from DWD failed : {error}")
