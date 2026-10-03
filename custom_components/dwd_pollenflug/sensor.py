@@ -67,7 +67,7 @@ class PollenflugSensorEntity(SensorEntity):
 
     async def async_update(self):
         """Update the value of the entity."""
-        today = utcnow().date()
+        today = utcnow().astimezone(self._source.last_update.tzinfo).date()
 
         # reset value and extra_state_attributes
         val_today = None
