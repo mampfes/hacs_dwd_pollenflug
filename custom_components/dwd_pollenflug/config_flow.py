@@ -4,6 +4,7 @@ Used by UI to setup a DWD Pollenflug integration.
 """
 import voluptuous as vol
 from homeassistant import config_entries
+from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
 from .const import CONF_REGION_ID, DOMAIN
 from .DWD import Pollenflug
@@ -33,7 +34,7 @@ class DwdPollenflugConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             self._source = Pollenflug.Pollenflug()
 
             try:
-                await self.hass.async_add_executor_job(self._source.fetch)
+                await self._source.fetch(async_get_clientsession(self.hass))
             except Exception:
                 return self.async_abort(reason="fetch_failed")
 
